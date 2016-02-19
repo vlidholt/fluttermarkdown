@@ -1,0 +1,6 @@
+name: flutterhelp
+description: A minimal Flutter project.
+dependencies:
+  flutter:
+    path: ../flutter/packages/flutter
+  markdown: "0.9.0"
