@@ -28,7 +28,8 @@ class FlutterDemoState extends State {
       ),
       body: new Material(
         child: new Center(
-          child: new Markdown(data: "Testing *italic* font __bold__ fanciness. *Italic text with __bold__ embedded!* Some normal text at the end.\nSecond line.\nThird line.\n\nSecond paragraph"))
+          // child: new Markdown(data: "Testing *italic* font __bold__ fanciness. *Italic text with __bold__ embedded!* Some normal text at the end.\nSecond line.\nThird line.\n\nSecond paragraph"))
+          child: new Markdown(data: "One\n\nTwo\n\nThree"))
       )
     );
   }

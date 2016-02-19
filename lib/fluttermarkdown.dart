@@ -71,17 +71,58 @@ class _MarkdownState extends State<Markdown> {
 
   void initState() {
     super.initState();
-    _cachedStyle = textFromMarkdown(config.data);
+    _blocks = <_Block>[];
+    _cachedTree = _treeFromMarkup(config.data);
   }
 
   Widget build(BuildContext context) {
-    return new StyledText(elements: _cachedStyle);
+    //return new StyledText(elements: _cachedTree);
+    // return _widgetsFromTree(_cachedTree);
+
+    List<Widget> blocks = <Widget>[];
+    for (List<dynamic>blockData in _cachedTree) {
+      dynamic tag = blockData.first;
+      if (tag is _Block) {
+        if (tag.tag == "p" && blockData.length == 2) {
+          StyledText block = new StyledText(elements: blockData[1]);
+          blocks.add(block);
+        }
+      }
+    }
+    return new Column(
+      children: blocks
+    );
   }
 
-  List<dynamic> _cachedStyle;
+  dynamic _widgetsFromTree(dynamic tree) {
+    assert(tree.length > 0);
+
+    if (tree is String) return tree;
+
+    if (tree is List) {
+      dynamic head = tree.first;
+
+      if (head is String) {
+        return tree;
+      } else if (head is TextStyle) {
+        return tree;
+      } else if (head is _Block) {
+        List<Widget> widgets = <Widget>[];
+        for (_Block blockTag in tree)
+        if (blockTag.tag == "p") {
+          return new StyledText(elements: _widgetsFromTree(tree.last));
+        }
+        return new Column(children: widgets);
+      }
+    }
+    assert(false);
+    return null;
+  }
+
+  List<dynamic> _cachedTree;
 }
 
-List<dynamic> textFromMarkdown(String data) {
+List<dynamic> _treeFromMarkup(String data) {
   var lines = data.replaceAll('\r\n', '\n').split('\n');
   md.Document document = new md.Document();
 
@@ -90,35 +131,38 @@ List<dynamic> textFromMarkdown(String data) {
 }
 
 class _Renderer implements md.NodeVisitor {
-  List<dynamic> render(List<md.Node> nodes) {
-    _stack = [];
+  List<_Block> render(List<md.Node> nodes) {
+    _blocks = <_Block>[];
 
     for (final md.Node node in nodes) {
       node.accept(this);
     }
 
-    print("stack: $_stack");
-    if (_stack.length > 0)
-      return _stack.first;
-    else
-      return [""];
+    print("blocks: $_blocks");
+    return _blocks;
   }
 
-  List<dynamic> _stack;
+  List<_Block> _blocks;
 
   void visitText(md.Text text) {
     print("visitText: ${text.text}");
 
     // Add text to topmost list on the stack
-    List<dynamic> top = _stack.last;
+    List<dynamic> top = _currentBlock.stack.last;
     top.add(text.text);
   }
 
   bool visitElementBefore(md.Element element) {
+    if (_isBlockTag(element.tag)) {
+      _blocks.add(new _Block(element.tag));
+    } else {
+      // Add a new element, that contains the tag's style, to the stack
+      List<dynamic> styleElement = <dynamic>[_styleForTag(element.tag)];
+      _currentBlock.stack.add(styleElement);
+    }
+
     print("visitElementBefore: tag: ${element.tag}");
-    // Add a new element, that contains the tag's style, to the stack
-    List<dynamic> styleElement = <dynamic>[_objectForTag(element.tag)];
-    _stack.add(styleElement);
+
 
     return true;
   }
@@ -126,16 +170,23 @@ class _Renderer implements md.NodeVisitor {
   void visitElementAfter(md.Element element) {
     print("visitElementAfter: tag: ${element.tag}");
 
-    if (_stack.length > 1) {
-      List<dynamic> popped = _stack.last;
-      _stack.removeLast();
+    if (_isBlockTag(element.tag)) {
+      if (_currentBlock.stack.length > 0)
+        _currentBlock.stack = _currentBlock.stack.first;
+      else
+        _currentBlock.stack = <dynamic>[""];
+    } else {
+      if (_currentBlock.stack.length > 1) {
+        List<dynamic> popped = _currentBlock.stack.last;
+        _currentBlock.stack.removeLast();
 
-      List<dynamic> top = _stack.last;
-      top.add(popped);
+        List<dynamic> top = _currentBlock.stack.last;
+        top.add(popped);
+      }
     }
   }
 
-  dynamic _objectForTag(String tag) {
+  TextStyle _styleForTag(String tag) {
     if (tag == 'p')
       return new TextStyle(color: Colors.black);
     else if (tag == 'em')
@@ -145,9 +196,16 @@ class _Renderer implements md.NodeVisitor {
     else
       return new TextStyle();
   }
+
+  bool _isBlockTag(String tag) {
+    return <String>["p"].contains(tag);
+  }
+
+  _Block get _currentBlock => _blocks.last;
 }
 
-class _BlockTag {
-  _BlockTag(this.tag);
+class _Block {
+  _Block(this.tag);
   final String tag;
+  List<dynamic> stack = <dynamic>[];
 }
