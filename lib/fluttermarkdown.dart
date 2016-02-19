@@ -71,58 +71,26 @@ class _MarkdownState extends State<Markdown> {
 
   void initState() {
     super.initState();
-    _blocks = <_Block>[];
-    _cachedTree = _treeFromMarkup(config.data);
+    _cachedBlocks = _blocksFromMarkup(config.data);
   }
+
+  List<_Block> _cachedBlocks;
 
   Widget build(BuildContext context) {
     //return new StyledText(elements: _cachedTree);
     // return _widgetsFromTree(_cachedTree);
 
     List<Widget> blocks = <Widget>[];
-    for (List<dynamic>blockData in _cachedTree) {
-      dynamic tag = blockData.first;
-      if (tag is _Block) {
-        if (tag.tag == "p" && blockData.length == 2) {
-          StyledText block = new StyledText(elements: blockData[1]);
-          blocks.add(block);
-        }
-      }
+    for (_Block block in _cachedBlocks) {
+      // TODO: Here!
     }
     return new Column(
       children: blocks
     );
   }
-
-  dynamic _widgetsFromTree(dynamic tree) {
-    assert(tree.length > 0);
-
-    if (tree is String) return tree;
-
-    if (tree is List) {
-      dynamic head = tree.first;
-
-      if (head is String) {
-        return tree;
-      } else if (head is TextStyle) {
-        return tree;
-      } else if (head is _Block) {
-        List<Widget> widgets = <Widget>[];
-        for (_Block blockTag in tree)
-        if (blockTag.tag == "p") {
-          return new StyledText(elements: _widgetsFromTree(tree.last));
-        }
-        return new Column(children: widgets);
-      }
-    }
-    assert(false);
-    return null;
-  }
-
-  List<dynamic> _cachedTree;
 }
 
-List<dynamic> _treeFromMarkup(String data) {
+List<_Block> _blocksFromMarkup(String data) {
   var lines = data.replaceAll('\r\n', '\n').split('\n');
   md.Document document = new md.Document();
 
