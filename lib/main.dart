@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'fluttermarkdown.dart';
 
 void main() {
+
   runApp(
     new MaterialApp(
       title: "Flutter Demo",
@@ -19,17 +20,34 @@ class FlutterDemo extends StatefulComponent {
 
 class FlutterDemoState extends State {
 
+  void initState() {
+    super.initState();
 
+    DefaultAssetBundle.of(context).loadString('assets/example.md').then((String data) {
+      setState(() {
+        this.data = data;
+      });
+    });
+  }
+
+  String data;
 
   Widget build(BuildContext context) {
+    if (data == null) {
+      return new Scaffold(
+        toolBar: new ToolBar(
+          center: new Text("Markdown Demo")
+        )
+      );
+    }
+
     return new Scaffold(
       toolBar: new ToolBar(
         center: new Text("Flutter Demo")
       ),
       body: new Material(
         child: new Center(
-          // child: new Markdown(data: "Testing *italic* font __bold__ fanciness. *Italic text with __bold__ embedded!* Some normal text at the end.\nSecond line.\nThird line.\n\nSecond paragraph"))
-          child: new Markdown(data: "One\n\nTwo\nSecond line *italic* __bold__\n\nThree"))
+          child: new Markdown(data: data))
       )
     );
   }

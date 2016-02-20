@@ -193,7 +193,7 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p"].contains(tag);
+    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6"].contains(tag);
   }
 
   _Block get _currentBlock => _blocks.last;
@@ -214,7 +214,7 @@ class _Block {
 
   Widget build(BuildContext context) {
     return new Container(
-      margin: new EdgeDims.only(bottom: 6.0),
+      margin: new EdgeDims.only(bottom: 8.0),
       child: new StyledText(elements: stack)
     );
   }

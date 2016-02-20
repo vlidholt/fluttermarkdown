@@ -1,3 +1,5 @@
 name: flutterhelp
 material-design-icons:
   - name: content/add
+assets:
+  - assets/example.md
