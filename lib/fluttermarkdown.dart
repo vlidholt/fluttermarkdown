@@ -69,6 +69,7 @@ class MarkdownStyle {
   void _init() {
     _styles = {
       'p': p,
+      'li': p,
       'h1': h1,
       'h2': h2,
       'h3': h3,
@@ -133,6 +134,7 @@ class _Renderer implements md.NodeVisitor {
     assert(styles != null);
 
     _blocks = <_Block>[];
+    _listIndents = <String>[];
     _styles = styles;
 
     for (final md.Node node in nodes) {
@@ -144,6 +146,7 @@ class _Renderer implements md.NodeVisitor {
   }
 
   List<_Block> _blocks;
+  List<String> _listIndents;
   MarkdownStyle _styles;
 
   void visitText(md.Text text) {
@@ -156,7 +159,9 @@ class _Renderer implements md.NodeVisitor {
 
   bool visitElementBefore(md.Element element) {
     if (_isBlockTag(element.tag)) {
-      _blocks.add(new _Block(element.tag, _styles));
+      _blocks.add(new _Block(element.tag, _styles, new List<String>.from(_listIndents)));
+    } else if (_isListTag(element.tag)) {
+      _listIndents.add(element.tag);
     } else {
       // Add a new element, that contains the tag's style, to the stack
       TextStyle style = _styles._styles[element.tag];
@@ -181,6 +186,8 @@ class _Renderer implements md.NodeVisitor {
         _currentBlock.stack = _currentBlock.stack.first;
       else
         _currentBlock.stack = <dynamic>[""];
+    } else if (_isListTag(element.tag)) {
+      _listIndents.removeLast();
     } else {
       if (_currentBlock.stack.length > 1) {
         List<dynamic> popped = _currentBlock.stack.last;
@@ -193,14 +200,18 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6"].contains(tag);
+    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li"].contains(tag);
+  }
+
+  bool _isListTag(String tag) {
+    return <String>["ul", "ol"].contains(tag);
   }
 
   _Block get _currentBlock => _blocks.last;
 }
 
 class _Block {
-  _Block(this.tag, this.styles) {
+  _Block(this.tag, this.styles, this.listIndents) {
     TextStyle style = styles._styles[tag];
     if (style == null)
       style = new TextStyle(color: Colors.red[500]);
@@ -210,12 +221,26 @@ class _Block {
 
   final String tag;
   final MarkdownStyle styles;
+  final List<String> listIndents;
   List<dynamic> stack;
 
   Widget build(BuildContext context) {
+    Widget contents = new StyledText(elements: stack);
+    if (listIndents.length > 0) {
+      contents = new Row(
+        children: <Widget>[
+          new SizedBox(
+            width: listIndents.length * 16.0,
+            child: new Text("•")
+          ),
+          contents
+        ]
+      );
+    }
+
     return new Container(
       margin: new EdgeDims.only(bottom: 8.0),
-      child: new StyledText(elements: stack)
+      child: contents
     );
   }
 
