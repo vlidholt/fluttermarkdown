@@ -2,7 +2,9 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:flutter/material.dart';
 
 class MarkdownStyle {
+
   MarkdownStyle({
+    this.p,
     this.h1,
     this.h2,
     this.h3,
@@ -10,10 +12,13 @@ class MarkdownStyle {
     this.h5,
     this.h6,
     this.em,
-    this.bold
-  });
+    this.strong
+  }) {
+    _init();
+  }
 
   MarkdownStyle.fromTheme(ThemeData theme) :
+    p = theme.text.body1,
     h1 = theme.text.display3,
     h2 = theme.text.display2,
     h3 = theme.text.display1,
@@ -21,9 +26,12 @@ class MarkdownStyle {
     h5 = theme.text.title,
     h6 = theme.text.subhead,
     em = new TextStyle(fontStyle: FontStyle.italic),
-    bold = new TextStyle(fontWeight: FontWeight.bold);
+    strong = new TextStyle(fontWeight: FontWeight.bold) {
+    _init();
+  }
 
   MarkdownStyle copyWith({
+    TextStyle p,
     TextStyle h1,
     TextStyle h2,
     TextStyle h3,
@@ -31,9 +39,10 @@ class MarkdownStyle {
     TextStyle h5,
     TextStyle h6,
     TextStyle em,
-    TextStyle bold
+    TextStyle strong
   }) {
     return new MarkdownStyle(
+      p: p != null ? p : this.p,
       h1: h1 != null ? h1 : this.h1,
       h2: h2 != null ? h2 : this.h2,
       h3: h3 != null ? h3 : this.h3,
@@ -41,10 +50,11 @@ class MarkdownStyle {
       h5: h5 != null ? h5 : this.h5,
       h6: h6 != null ? h6 : this.h6,
       em: em != null ? em : this.em,
-      bold: bold != null ? bold : this.bold
+      strong: strong != null ? strong : this.strong
     );
   }
 
+  final TextStyle p;
   final TextStyle h1;
   final TextStyle h2;
   final TextStyle h3;
@@ -52,7 +62,23 @@ class MarkdownStyle {
   final TextStyle h5;
   final TextStyle h6;
   final TextStyle em;
-  final TextStyle bold;
+  final TextStyle strong;
+
+  Map<String, TextStyle> _styles;
+
+  void _init() {
+    _styles = {
+      'p': p,
+      'h1': h1,
+      'h2': h2,
+      'h3': h3,
+      'h4': h4,
+      'h5': h5,
+      'h6': h6,
+      'em': em,
+      'strong': strong
+    };
+  }
 }
 
 class Markdown extends StatefulComponent {
@@ -71,36 +97,43 @@ class _MarkdownState extends State<Markdown> {
 
   void initState() {
     super.initState();
-    _cachedBlocks = _blocksFromMarkup(config.data);
+
+    MarkdownStyle style = config.style;
+    if (style == null)
+      style = new MarkdownStyle.fromTheme(Theme.of(context));
+
+    _cachedBlocks = _blocksFromMarkup(config.data, style);
   }
 
   List<_Block> _cachedBlocks;
 
   Widget build(BuildContext context) {
-    //return new StyledText(elements: _cachedTree);
-    // return _widgetsFromTree(_cachedTree);
-
     List<Widget> blocks = <Widget>[];
     for (_Block block in _cachedBlocks) {
-      // TODO: Here!
+      blocks.add(block.build(context));
     }
+
     return new Column(
+      alignItems: FlexAlignItems.start,
       children: blocks
     );
   }
 }
 
-List<_Block> _blocksFromMarkup(String data) {
+List<_Block> _blocksFromMarkup(String data, MarkdownStyle styles) {
   var lines = data.replaceAll('\r\n', '\n').split('\n');
   md.Document document = new md.Document();
 
   _Renderer renderer = new _Renderer();
-  return renderer.render(document.parseLines(lines));
+  return renderer.render(document.parseLines(lines), styles);
 }
 
 class _Renderer implements md.NodeVisitor {
-  List<_Block> render(List<md.Node> nodes) {
+  List<_Block> render(List<md.Node> nodes, MarkdownStyle styles) {
+    assert(styles != null);
+
     _blocks = <_Block>[];
+    _styles = styles;
 
     for (final md.Node node in nodes) {
       node.accept(this);
@@ -111,6 +144,7 @@ class _Renderer implements md.NodeVisitor {
   }
 
   List<_Block> _blocks;
+  MarkdownStyle _styles;
 
   void visitText(md.Text text) {
     print("visitText: ${text.text}");
@@ -122,10 +156,14 @@ class _Renderer implements md.NodeVisitor {
 
   bool visitElementBefore(md.Element element) {
     if (_isBlockTag(element.tag)) {
-      _blocks.add(new _Block(element.tag));
+      _blocks.add(new _Block(element.tag, _styles));
     } else {
       // Add a new element, that contains the tag's style, to the stack
-      List<dynamic> styleElement = <dynamic>[_styleForTag(element.tag)];
+      TextStyle style = _styles._styles[element.tag];
+      if (style == null)
+        style = new TextStyle();
+
+      List<dynamic> styleElement = <dynamic>[style];
       _currentBlock.stack.add(styleElement);
     }
 
@@ -154,17 +192,6 @@ class _Renderer implements md.NodeVisitor {
     }
   }
 
-  TextStyle _styleForTag(String tag) {
-    if (tag == 'p')
-      return new TextStyle(color: Colors.black);
-    else if (tag == 'em')
-      return new TextStyle(fontStyle: FontStyle.italic);
-    else if (tag == 'strong')
-      return new TextStyle(fontWeight: FontWeight.bold);
-    else
-      return new TextStyle();
-  }
-
   bool _isBlockTag(String tag) {
     return <String>["p"].contains(tag);
   }
@@ -173,7 +200,26 @@ class _Renderer implements md.NodeVisitor {
 }
 
 class _Block {
-  _Block(this.tag);
+  _Block(this.tag, this.styles) {
+    TextStyle style = styles._styles[tag];
+    if (style == null)
+      style = new TextStyle(color: Colors.red[500]);
+
+    stack = <dynamic>[<dynamic>[style]];
+  }
+
   final String tag;
-  List<dynamic> stack = <dynamic>[];
+  final MarkdownStyle styles;
+  List<dynamic> stack;
+
+  Widget build(BuildContext context) {
+    return new Container(
+      margin: new EdgeDims.only(bottom: 6.0),
+      child: new StyledText(elements: stack)
+    );
+  }
+
+  String toString() {
+    return "<$tag | $stack>";
+  }
 }
