@@ -12,7 +12,8 @@ class MarkdownStyle {
     this.h5,
     this.h6,
     this.em,
-    this.strong
+    this.strong,
+    this.blockquote
   }) {
     _init();
   }
@@ -26,7 +27,8 @@ class MarkdownStyle {
     h5 = theme.text.title,
     h6 = theme.text.subhead,
     em = new TextStyle(fontStyle: FontStyle.italic),
-    strong = new TextStyle(fontWeight: FontWeight.bold) {
+    strong = new TextStyle(fontWeight: FontWeight.bold),
+    blockquote = theme.text.body1 {
     _init();
   }
 
@@ -39,7 +41,8 @@ class MarkdownStyle {
     TextStyle h5,
     TextStyle h6,
     TextStyle em,
-    TextStyle strong
+    TextStyle strong,
+    TextStyle blockquote
   }) {
     return new MarkdownStyle(
       p: p != null ? p : this.p,
@@ -50,7 +53,8 @@ class MarkdownStyle {
       h5: h5 != null ? h5 : this.h5,
       h6: h6 != null ? h6 : this.h6,
       em: em != null ? em : this.em,
-      strong: strong != null ? strong : this.strong
+      strong: strong != null ? strong : this.strong,
+      blockquote: blockquote != null ? blockquote : this.blockquote
     );
   }
 
@@ -63,6 +67,7 @@ class MarkdownStyle {
   final TextStyle h6;
   final TextStyle em;
   final TextStyle strong;
+  final TextStyle blockquote;
 
   Map<String, TextStyle> _styles;
 
@@ -77,7 +82,8 @@ class MarkdownStyle {
       'h5': h5,
       'h6': h6,
       'em': em,
-      'strong': strong
+      'strong': strong,
+      'blockquote': blockquote
     };
   }
 }
@@ -159,7 +165,11 @@ class _Renderer implements md.NodeVisitor {
 
   bool visitElementBefore(md.Element element) {
     if (_isBlockTag(element.tag)) {
-      _blocks.add(new _Block(element.tag, _styles, new List<String>.from(_listIndents)));
+      _Block newBlock = new _Block(element.tag, _styles, new List<String>.from(_listIndents));
+      if (_currentBlock == null)
+        _blocks.add(newBlock);
+      else
+        _currentBlock.subBlocks.add(newBlock);
     } else if (_isListTag(element.tag)) {
       _listIndents.add(element.tag);
     } else {
@@ -182,10 +192,12 @@ class _Renderer implements md.NodeVisitor {
     print("visitElementAfter: tag: ${element.tag}");
 
     if (_isBlockTag(element.tag)) {
-      if (_currentBlock.stack.length > 0)
+      if (_currentBlock.stack.length > 0) {
         _currentBlock.stack = _currentBlock.stack.first;
-      else
+        _currentBlock.open = false;
+      } else {
         _currentBlock.stack = <dynamic>[""];
+      }
     } else if (_isListTag(element.tag)) {
       _listIndents.removeLast();
     } else {
@@ -200,14 +212,24 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li"].contains(tag);
+    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote"].contains(tag);
   }
 
   bool _isListTag(String tag) {
     return <String>["ul", "ol"].contains(tag);
   }
 
-  _Block get _currentBlock => _blocks.last;
+  _Block get _currentBlock {
+    if (_blocks.length == 0)
+      return null;
+
+    if (!_blocks.last.open)
+      return null;
+    if (_blocks.last.subBlocks.length > 0 && _blocks.last.subBlocks.last.open) {
+      return _blocks.last.subBlocks.last;
+    }
+    return _blocks.last;
+  }
 }
 
 class _Block {
@@ -217,14 +239,28 @@ class _Block {
       style = new TextStyle(color: Colors.red[500]);
 
     stack = <dynamic>[<dynamic>[style]];
+    subBlocks = <_Block>[];
   }
 
   final String tag;
   final MarkdownStyle styles;
   final List<String> listIndents;
   List<dynamic> stack;
+  List<_Block> subBlocks;
+  bool open = true;
 
   Widget build(BuildContext context) {
+    if (subBlocks.length > 0) {
+      List<Widget> subWidgets = <Widget>[];
+      for (_Block subBlock in subBlocks) {
+        subWidgets.add(subBlock.build(context));
+      }
+
+      return new Column(
+        children: subWidgets
+      );
+    }
+
     Widget contents = new StyledText(elements: stack);
     if (listIndents.length > 0) {
       contents = new Row(
