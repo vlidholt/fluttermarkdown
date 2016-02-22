@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class MarkdownStyle {
 
   MarkdownStyle({
+    this.a,
     this.p,
     this.h1,
     this.h2,
@@ -19,6 +20,7 @@ class MarkdownStyle {
   }
 
   MarkdownStyle.fromTheme(ThemeData theme) :
+    a = new TextStyle(color: Colors.blue[500]),
     p = theme.text.body1,
     h1 = theme.text.display3,
     h2 = theme.text.display2,
@@ -33,6 +35,7 @@ class MarkdownStyle {
   }
 
   MarkdownStyle copyWith({
+    TextStyle a,
     TextStyle p,
     TextStyle h1,
     TextStyle h2,
@@ -45,6 +48,7 @@ class MarkdownStyle {
     TextStyle blockquote
   }) {
     return new MarkdownStyle(
+      a: a != null ? a : this.a,
       p: p != null ? p : this.p,
       h1: h1 != null ? h1 : this.h1,
       h2: h2 != null ? h2 : this.h2,
@@ -58,6 +62,7 @@ class MarkdownStyle {
     );
   }
 
+  final TextStyle a;
   final TextStyle p;
   final TextStyle h1;
   final TextStyle h2;
@@ -73,6 +78,7 @@ class MarkdownStyle {
 
   void _init() {
     _styles = {
+      'a': a,
       'p': p,
       'li': p,
       'h1': h1,
@@ -165,7 +171,7 @@ class _Renderer implements md.NodeVisitor {
 
   bool visitElementBefore(md.Element element) {
     if (_isBlockTag(element.tag)) {
-      _Block newBlock = new _Block(element.tag, _styles, new List<String>.from(_listIndents));
+      _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents));
       if (_currentBlock == null)
         _blocks.add(newBlock);
       else
@@ -233,7 +239,7 @@ class _Renderer implements md.NodeVisitor {
 }
 
 class _Block {
-  _Block(this.tag, this.styles, this.listIndents) {
+  _Block(this.tag, this.attributes, this.styles, this.listIndents) {
     TextStyle style = styles._styles[tag];
     if (style == null)
       style = new TextStyle(color: Colors.red[500]);
@@ -243,6 +249,8 @@ class _Block {
   }
 
   final String tag;
+  final Map<String, String> attributes;
+
   final MarkdownStyle styles;
   final List<String> listIndents;
   List<dynamic> stack;
@@ -250,33 +258,48 @@ class _Block {
   bool open = true;
 
   Widget build(BuildContext context) {
+    Widget contents;
+    BoxDecoration decoration;
+    EdgeDims padding;
+
+    if (tag == 'blockquote') {
+      decoration = new BoxDecoration(
+        backgroundColor: Colors.blue[100],
+        borderRadius: 2.0
+      );
+      padding = new EdgeDims.all(8.0);
+    }
+
     if (subBlocks.length > 0) {
       List<Widget> subWidgets = <Widget>[];
       for (_Block subBlock in subBlocks) {
         subWidgets.add(subBlock.build(context));
       }
 
-      return new Column(
+      contents = new Column(
+        alignItems: FlexAlignItems.start,
         children: subWidgets
       );
-    }
-
-    Widget contents = new StyledText(elements: stack);
-    if (listIndents.length > 0) {
-      contents = new Row(
-        children: <Widget>[
-          new SizedBox(
-            width: listIndents.length * 16.0,
-            child: new Text("•")
-          ),
-          contents
-        ]
-      );
+    } else {
+      contents = new StyledText(elements: stack);
+      if (listIndents.length > 0) {
+        contents = new Row(
+          children: <Widget>[
+            new SizedBox(
+              width: listIndents.length * 16.0,
+              child: new Text("•")
+            ),
+            contents
+          ]
+        );
+      }
     }
 
     return new Container(
+      padding: padding,
       margin: new EdgeDims.only(bottom: 8.0),
-      child: contents
+      child: contents,
+      decoration: decoration
     );
   }
 
