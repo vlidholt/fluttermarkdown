@@ -46,8 +46,8 @@ class FlutterDemoState extends State {
         center: new Text("Flutter Demo")
       ),
       body: new Material(
-        child: new Center(
-          child: new Markdown(data: data))
+        child: new Block(
+          children: <Widget>[new Markdown(data: data)])
       )
     );
   }

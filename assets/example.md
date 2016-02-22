@@ -11,6 +11,8 @@ regular paragraph.
 The quick brown fox jumped over the lazy
 dog's back.
 
+    Code example!
+
 This is an [example link](http://example.com/).
 
 ![My image](https://s-media-cache-ak0.pinimg.com/236x/00/3d/1b/003d1b933780b855aa568d683b91622d.jpg)

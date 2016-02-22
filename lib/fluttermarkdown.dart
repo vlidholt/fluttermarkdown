@@ -6,6 +6,7 @@ class MarkdownStyle {
   MarkdownStyle({
     this.a,
     this.p,
+    this.code,
     this.h1,
     this.h2,
     this.h3,
@@ -22,6 +23,7 @@ class MarkdownStyle {
   MarkdownStyle.fromTheme(ThemeData theme) :
     a = new TextStyle(color: Colors.blue[500]),
     p = theme.text.body1,
+    code = new TextStyle(color: Colors.purple[500]),
     h1 = theme.text.display3,
     h2 = theme.text.display2,
     h3 = theme.text.display1,
@@ -37,6 +39,7 @@ class MarkdownStyle {
   MarkdownStyle copyWith({
     TextStyle a,
     TextStyle p,
+    TextStyle code,
     TextStyle h1,
     TextStyle h2,
     TextStyle h3,
@@ -50,6 +53,7 @@ class MarkdownStyle {
     return new MarkdownStyle(
       a: a != null ? a : this.a,
       p: p != null ? p : this.p,
+      code: code != null ? code : this.code,
       h1: h1 != null ? h1 : this.h1,
       h2: h2 != null ? h2 : this.h2,
       h3: h3 != null ? h3 : this.h3,
@@ -64,6 +68,7 @@ class MarkdownStyle {
 
   final TextStyle a;
   final TextStyle p;
+  final TextStyle code;
   final TextStyle h1;
   final TextStyle h2;
   final TextStyle h3;
@@ -81,6 +86,8 @@ class MarkdownStyle {
       'a': a,
       'p': p,
       'li': p,
+      'code': code,
+      'pre': p,
       'h1': h1,
       'h2': h2,
       'h3': h3,
@@ -218,7 +225,7 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote"].contains(tag);
+    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "img", "pre"].contains(tag);
   }
 
   bool _isListTag(String tag) {
@@ -258,6 +265,11 @@ class _Block {
   bool open = true;
 
   Widget build(BuildContext context) {
+
+    if (tag == 'img') {
+      return new NetworkImage(src: attributes['src']);
+    }
+
     Widget contents;
     BoxDecoration decoration;
     EdgeDims padding;
@@ -265,6 +277,12 @@ class _Block {
     if (tag == 'blockquote') {
       decoration = new BoxDecoration(
         backgroundColor: Colors.blue[100],
+        borderRadius: 2.0
+      );
+      padding = new EdgeDims.all(8.0);
+    } else if (tag == 'pre') {
+      decoration = new BoxDecoration(
+        backgroundColor: Colors.grey[100],
         borderRadius: 2.0
       );
       padding = new EdgeDims.all(8.0);
