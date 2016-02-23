@@ -20,7 +20,7 @@ class MarkdownStyle {
     _init();
   }
 
-  MarkdownStyle.fromTheme(ThemeData theme) :
+  MarkdownStyle.largeFromTheme(ThemeData theme) :
     a = new TextStyle(color: Colors.blue[500]),
     p = theme.text.body1,
     code = new TextStyle(color: Colors.purple[500]),
@@ -30,6 +30,22 @@ class MarkdownStyle {
     h4 = theme.text.headline,
     h5 = theme.text.title,
     h6 = theme.text.subhead,
+    em = new TextStyle(fontStyle: FontStyle.italic),
+    strong = new TextStyle(fontWeight: FontWeight.bold),
+    blockquote = theme.text.body1 {
+    _init();
+  }
+
+  MarkdownStyle.defaultFromTheme(ThemeData theme) :
+    a = new TextStyle(color: Colors.blue[500]),
+    p = theme.text.body1,
+    code = new TextStyle(color: Colors.purple[500]),
+    h1 = theme.text.headline,
+    h2 = theme.text.title,
+    h3 = theme.text.subhead,
+    h4 = theme.text.body2,
+    h5 = theme.text.body2,
+    h6 = theme.text.body2,
     em = new TextStyle(fontStyle: FontStyle.italic),
     strong = new TextStyle(fontWeight: FontWeight.bold),
     blockquote = theme.text.body1 {
@@ -120,7 +136,7 @@ class _MarkdownState extends State<Markdown> {
 
     MarkdownStyle style = config.style;
     if (style == null)
-      style = new MarkdownStyle.fromTheme(Theme.of(context));
+      style = new MarkdownStyle.defaultFromTheme(Theme.of(context));
 
     _cachedBlocks = _blocksFromMarkup(config.data, style);
   }
@@ -134,7 +150,7 @@ class _MarkdownState extends State<Markdown> {
     }
 
     return new Column(
-      alignItems: FlexAlignItems.start,
+      alignItems: FlexAlignItems.stretch,
       children: blocks
     );
   }
@@ -299,7 +315,7 @@ class _Block {
       }
 
       contents = new Column(
-        alignItems: FlexAlignItems.start,
+        alignItems: FlexAlignItems.stretch,
         children: subWidgets
       );
     } else {
