@@ -232,16 +232,20 @@ class _Renderer implements md.NodeVisitor {
     return <String>["ul", "ol"].contains(tag);
   }
 
-  _Block get _currentBlock {
-    if (_blocks.length == 0)
+  _Block get _currentBlock => _currentBlockInList(_blocks);
+
+  _Block _currentBlockInList(List<_Block> blocks) {
+    if (blocks.length == 0)
       return null;
 
-    if (!_blocks.last.open)
+    if (!blocks.last.open)
       return null;
-    if (_blocks.last.subBlocks.length > 0 && _blocks.last.subBlocks.last.open) {
-      return _blocks.last.subBlocks.last;
-    }
-    return _blocks.last;
+
+    _Block childBlock = _currentBlockInList(blocks.last.subBlocks);
+    if (childBlock != null)
+      return childBlock;
+
+    return blocks.last;
   }
 }
 
