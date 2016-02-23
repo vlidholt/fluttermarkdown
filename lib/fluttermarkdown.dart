@@ -306,12 +306,13 @@ class _Block {
       contents = new StyledText(elements: stack);
       if (listIndents.length > 0) {
         contents = new Row(
+          alignItems: FlexAlignItems.start,
           children: <Widget>[
             new SizedBox(
               width: listIndents.length * 16.0,
               child: new Text("•")
             ),
-            contents
+            new Flexible(child: contents)
           ]
         );
       }
