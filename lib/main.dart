@@ -43,10 +43,11 @@ class FlutterDemoState extends State {
 
     return new Scaffold(
       toolBar: new ToolBar(
-        center: new Text("Flutter Demo")
+        center: new Text("Markdown Demo")
       ),
       body: new Material(
         child: new Block(
+          padding: new EdgeDims.all(16.0),
           children: <Widget>[new Markdown(data: data)])
       )
     );
