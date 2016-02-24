@@ -193,6 +193,9 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool visitElementBefore(md.Element element) {
+    if (_isListTag(element.tag))
+      _listIndents.add(element.tag);
+
     if (_isBlockTag(element.tag)) {
       List<_Block> blockList;
       if (_currentBlock == null)
@@ -202,8 +205,6 @@ class _Renderer implements md.NodeVisitor {
 
       _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents), blockList.length);
       blockList.add(newBlock);
-    } else if (_isListTag(element.tag)) {
-      _listIndents.add(element.tag);
     } else {
       // Add a new element, that contains the tag's style, to the stack
       TextStyle style = _styles._styles[element.tag];
@@ -223,6 +224,9 @@ class _Renderer implements md.NodeVisitor {
   void visitElementAfter(md.Element element) {
     print("visitElementAfter: tag: ${element.tag}");
 
+    if (_isListTag(element.tag))
+      _listIndents.removeLast();
+
     if (_isBlockTag(element.tag)) {
       if (_currentBlock.stack.length > 0) {
         _currentBlock.stack = _currentBlock.stack.first;
@@ -230,8 +234,6 @@ class _Renderer implements md.NodeVisitor {
       } else {
         _currentBlock.stack = <dynamic>[""];
       }
-    } else if (_isListTag(element.tag)) {
-      _listIndents.removeLast();
     } else {
       if (_currentBlock.stack.length > 1) {
         List<dynamic> popped = _currentBlock.stack.last;
@@ -244,7 +246,7 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "img", "pre"].contains(tag);
+    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "img", "pre", "ol", "ul"].contains(tag);
   }
 
   bool _isListTag(String tag) {
@@ -326,16 +328,26 @@ class _Block {
       contents = new StyledText(elements: stack);
       if (listIndents.length > 0) {
         Widget bullet;
-        if (listIndents.last == 'ul')
-          bullet = new Text('•');
-        else
-          bullet = new Text("${blockPosition + 1}");
-
+        if (listIndents.last == 'ul') {
+          bullet = new Text(
+            '•',
+            style: new TextStyle(textAlign: TextAlign.center)
+          );
+        }
+        else {
+          bullet = new Padding(
+            padding: new EdgeDims.only(right: 5.0),
+            child: new Text(
+              "${blockPosition + 1}.",
+              style: new TextStyle(textAlign: TextAlign.right)
+            )
+          );
+        }
         contents = new Row(
           alignItems: FlexAlignItems.start,
           children: <Widget>[
             new SizedBox(
-              width: listIndents.length * 16.0,
+              width: listIndents.length * 32.0,
               child: bullet
             ),
             new Flexible(child: contents)
