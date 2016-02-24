@@ -15,24 +15,10 @@ class MarkdownStyle {
     this.h6,
     this.em,
     this.strong,
-    this.blockquote
+    this.blockquote,
+    this.blockSpacing,
+    this.listIndent
   }) {
-    _init();
-  }
-
-  MarkdownStyle.largeFromTheme(ThemeData theme) :
-    a = new TextStyle(color: Colors.blue[500]),
-    p = theme.text.body1,
-    code = new TextStyle(color: Colors.purple[500]),
-    h1 = theme.text.display3,
-    h2 = theme.text.display2,
-    h3 = theme.text.display1,
-    h4 = theme.text.headline,
-    h5 = theme.text.title,
-    h6 = theme.text.subhead,
-    em = new TextStyle(fontStyle: FontStyle.italic),
-    strong = new TextStyle(fontWeight: FontWeight.bold),
-    blockquote = theme.text.body1 {
     _init();
   }
 
@@ -48,7 +34,27 @@ class MarkdownStyle {
     h6 = theme.text.body2,
     em = new TextStyle(fontStyle: FontStyle.italic),
     strong = new TextStyle(fontWeight: FontWeight.bold),
-    blockquote = theme.text.body1 {
+    blockquote = theme.text.body1,
+    blockSpacing = 8.0,
+    listIndent = 32.0 {
+    _init();
+  }
+
+  MarkdownStyle.largeFromTheme(ThemeData theme) :
+    a = new TextStyle(color: Colors.blue[500]),
+    p = theme.text.body1,
+    code = new TextStyle(color: Colors.purple[500]),
+    h1 = theme.text.display3,
+    h2 = theme.text.display2,
+    h3 = theme.text.display1,
+    h4 = theme.text.headline,
+    h5 = theme.text.title,
+    h6 = theme.text.subhead,
+    em = new TextStyle(fontStyle: FontStyle.italic),
+    strong = new TextStyle(fontWeight: FontWeight.bold),
+    blockquote = theme.text.body1,
+    blockSpacing = 8.0,
+    listIndent = 32.0 {
     _init();
   }
 
@@ -64,7 +70,9 @@ class MarkdownStyle {
     TextStyle h6,
     TextStyle em,
     TextStyle strong,
-    TextStyle blockquote
+    TextStyle blockquote,
+    double blockSpacing,
+    double listIndent
   }) {
     return new MarkdownStyle(
       a: a != null ? a : this.a,
@@ -78,7 +86,9 @@ class MarkdownStyle {
       h6: h6 != null ? h6 : this.h6,
       em: em != null ? em : this.em,
       strong: strong != null ? strong : this.strong,
-      blockquote: blockquote != null ? blockquote : this.blockquote
+      blockquote: blockquote != null ? blockquote : this.blockquote,
+      blockSpacing: blockSpacing != null ? blockSpacing : this.blockSpacing,
+      listIndent: listIndent != null ? listIndent : this.listIndent
     );
   }
 
@@ -94,6 +104,8 @@ class MarkdownStyle {
   final TextStyle em;
   final TextStyle strong;
   final TextStyle blockquote;
+  final double blockSpacing;
+  final double listIndent;
 
   Map<String, TextStyle> _styles;
 
@@ -120,11 +132,11 @@ class MarkdownStyle {
 class Markdown extends StatefulComponent {
   Markdown({
     this.data,
-    this.style
+    this.markdownStyle
   });
 
   final String data;
-  final MarkdownStyle style;
+  final MarkdownStyle markdownStyle;
 
   State<Markdown> createState() => new _MarkdownState();
 }
@@ -134,7 +146,7 @@ class _MarkdownState extends State<Markdown> {
   void initState() {
     super.initState();
 
-    MarkdownStyle style = config.style;
+    MarkdownStyle style = config.markdownStyle;
     if (style == null)
       style = new MarkdownStyle.defaultFromTheme(Theme.of(context));
 
@@ -156,21 +168,21 @@ class _MarkdownState extends State<Markdown> {
   }
 }
 
-List<_Block> _blocksFromMarkup(String data, MarkdownStyle styles) {
+List<_Block> _blocksFromMarkup(String data, MarkdownStyle markdownStyle) {
   var lines = data.replaceAll('\r\n', '\n').split('\n');
   md.Document document = new md.Document();
 
   _Renderer renderer = new _Renderer();
-  return renderer.render(document.parseLines(lines), styles);
+  return renderer.render(document.parseLines(lines), markdownStyle);
 }
 
 class _Renderer implements md.NodeVisitor {
-  List<_Block> render(List<md.Node> nodes, MarkdownStyle styles) {
-    assert(styles != null);
+  List<_Block> render(List<md.Node> nodes, MarkdownStyle markdownStyle) {
+    assert(markdownStyle != null);
 
     _blocks = <_Block>[];
     _listIndents = <String>[];
-    _styles = styles;
+    _markdownStyle = markdownStyle;
 
     for (final md.Node node in nodes) {
       node.accept(this);
@@ -181,7 +193,7 @@ class _Renderer implements md.NodeVisitor {
 
   List<_Block> _blocks;
   List<String> _listIndents;
-  MarkdownStyle _styles;
+  MarkdownStyle _markdownStyle;
 
   void visitText(md.Text text) {
     List<dynamic> top = _currentBlock.stack.last;
@@ -199,10 +211,10 @@ class _Renderer implements md.NodeVisitor {
       else
         blockList = _currentBlock.subBlocks;
 
-      _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents), blockList.length);
+      _Block newBlock = new _Block(element.tag, element.attributes, _markdownStyle, new List<String>.from(_listIndents), blockList.length);
       blockList.add(newBlock);
     } else {
-      TextStyle style = _styles._styles[element.tag];
+      TextStyle style = _markdownStyle._styles[element.tag];
       if (style == null)
         style = new TextStyle();
 
@@ -260,8 +272,8 @@ class _Renderer implements md.NodeVisitor {
 }
 
 class _Block {
-  _Block(this.tag, this.attributes, this.styles, this.listIndents, this.blockPosition) {
-    TextStyle style = styles._styles[tag];
+  _Block(this.tag, this.attributes, this.markdownStyle, this.listIndents, this.blockPosition) {
+    TextStyle style = markdownStyle._styles[tag];
     if (style == null)
       style = new TextStyle(color: Colors.red[500]);
 
@@ -271,7 +283,7 @@ class _Block {
 
   final String tag;
   final Map<String, String> attributes;
-  final MarkdownStyle styles;
+  final MarkdownStyle markdownStyle;
   final List<String> listIndents;
   final int blockPosition;
 
@@ -294,7 +306,7 @@ class _Block {
       return new NetworkImage(src: attributes['src'], width: 200.0, height: 200.0);
     }
 
-    double spacing = 8.0;
+    double spacing = markdownStyle.blockSpacing;
     if (last) spacing = 0.0;
 
     Widget contents;
@@ -327,6 +339,7 @@ class _Block {
       );
     } else {
       contents = new StyledText(elements: stack);
+
       if (listIndents.length > 0) {
         Widget bullet;
         if (listIndents.last == 'ul') {
@@ -344,11 +357,12 @@ class _Block {
             )
           );
         }
+
         contents = new Row(
           alignItems: FlexAlignItems.start,
           children: <Widget>[
             new SizedBox(
-              width: listIndents.length * 32.0,
+              width: listIndents.length * markdownStyle.listIndent,
               child: bullet
             ),
             new Flexible(child: contents)
