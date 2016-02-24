@@ -194,11 +194,14 @@ class _Renderer implements md.NodeVisitor {
 
   bool visitElementBefore(md.Element element) {
     if (_isBlockTag(element.tag)) {
-      _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents));
+      List<_Block> blockList;
       if (_currentBlock == null)
-        _blocks.add(newBlock);
+        blockList = _blocks;
       else
-        _currentBlock.subBlocks.add(newBlock);
+        blockList = _currentBlock.subBlocks;
+
+      _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents), blockList.length);
+      blockList.add(newBlock);
     } else if (_isListTag(element.tag)) {
       _listIndents.add(element.tag);
     } else {
@@ -266,7 +269,7 @@ class _Renderer implements md.NodeVisitor {
 }
 
 class _Block {
-  _Block(this.tag, this.attributes, this.styles, this.listIndents) {
+  _Block(this.tag, this.attributes, this.styles, this.listIndents, this.blockPosition) {
     TextStyle style = styles._styles[tag];
     if (style == null)
       style = new TextStyle(color: Colors.red[500]);
@@ -277,9 +280,10 @@ class _Block {
 
   final String tag;
   final Map<String, String> attributes;
-
   final MarkdownStyle styles;
   final List<String> listIndents;
+  final int blockPosition;
+
   List<dynamic> stack;
   List<_Block> subBlocks;
   bool open = true;
@@ -287,7 +291,7 @@ class _Block {
   Widget build(BuildContext context) {
 
     if (tag == 'img') {
-      return new NetworkImage(src: attributes['src']);
+      return new NetworkImage(src: attributes['src'], width: 200.0, height: 200.0);
     }
 
     Widget contents;
@@ -321,12 +325,18 @@ class _Block {
     } else {
       contents = new StyledText(elements: stack);
       if (listIndents.length > 0) {
+        Widget bullet;
+        if (listIndents.last == 'ul')
+          bullet = new Text('•');
+        else
+          bullet = new Text("${blockPosition + 1}");
+
         contents = new Row(
           alignItems: FlexAlignItems.start,
           children: <Widget>[
             new SizedBox(
               width: listIndents.length * 16.0,
-              child: new Text("•")
+              child: bullet
             ),
             new Flexible(child: contents)
           ]
