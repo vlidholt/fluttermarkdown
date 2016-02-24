@@ -176,7 +176,6 @@ class _Renderer implements md.NodeVisitor {
       node.accept(this);
     }
 
-    print("blocks: $_blocks");
     return _blocks;
   }
 
@@ -185,9 +184,6 @@ class _Renderer implements md.NodeVisitor {
   MarkdownStyle _styles;
 
   void visitText(md.Text text) {
-    print("visitText: ${text.text}");
-
-    // Add text to topmost list on the stack
     List<dynamic> top = _currentBlock.stack.last;
     top.add(text.text);
   }
@@ -206,7 +202,6 @@ class _Renderer implements md.NodeVisitor {
       _Block newBlock = new _Block(element.tag, element.attributes, _styles, new List<String>.from(_listIndents), blockList.length);
       blockList.add(newBlock);
     } else {
-      // Add a new element, that contains the tag's style, to the stack
       TextStyle style = _styles._styles[element.tag];
       if (style == null)
         style = new TextStyle();
@@ -214,16 +209,10 @@ class _Renderer implements md.NodeVisitor {
       List<dynamic> styleElement = <dynamic>[style];
       _currentBlock.stack.add(styleElement);
     }
-
-    print("visitElementBefore: tag: ${element.tag}");
-
-
     return true;
   }
 
   void visitElementAfter(md.Element element) {
-    print("visitElementAfter: tag: ${element.tag}");
-
     if (_isListTag(element.tag))
       _listIndents.removeLast();
 
@@ -232,7 +221,7 @@ class _Renderer implements md.NodeVisitor {
         _currentBlock.stack = _currentBlock.stack.first;
         _currentBlock.open = false;
       } else {
-        _currentBlock.stack = <dynamic>[""];
+        _currentBlock.stack = <dynamic>[''];
       }
     } else {
       if (_currentBlock.stack.length > 1) {
@@ -246,11 +235,11 @@ class _Renderer implements md.NodeVisitor {
   }
 
   bool _isBlockTag(String tag) {
-    return <String>["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "img", "pre", "ol", "ul"].contains(tag);
+    return <String>['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'img', 'pre', 'ol', 'ul'].contains(tag);
   }
 
   bool _isListTag(String tag) {
-    return <String>["ul", "ol"].contains(tag);
+    return <String>['ul', 'ol'].contains(tag);
   }
 
   _Block get _currentBlock => _currentBlockInList(_blocks);
@@ -288,13 +277,25 @@ class _Block {
 
   List<dynamic> stack;
   List<_Block> subBlocks;
-  bool open = true;
+
+  bool get open => _open;
+  void set open(bool open) {
+    _open = open;
+    if (!open && subBlocks.length > 0)
+      subBlocks.last.last = true;
+  }
+
+  bool _open = true;
+  bool last = false;
 
   Widget build(BuildContext context) {
 
     if (tag == 'img') {
       return new NetworkImage(src: attributes['src'], width: 200.0, height: 200.0);
     }
+
+    double spacing = 8.0;
+    if (last) spacing = 0.0;
 
     Widget contents;
     BoxDecoration decoration;
@@ -358,13 +359,9 @@ class _Block {
 
     return new Container(
       padding: padding,
-      margin: new EdgeDims.only(bottom: 8.0),
+      margin: new EdgeDims.only(bottom: spacing),
       child: contents,
       decoration: decoration
     );
-  }
-
-  String toString() {
-    return "<$tag | $stack>";
   }
 }
