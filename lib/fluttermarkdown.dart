@@ -342,7 +342,7 @@ class _Block {
   Widget build(BuildContext context) {
 
     if (tag == 'img') {
-      return new NetworkImage(src: attributes['src'], width: 200.0, height: 200.0);
+      return _buildImage(context, attributes['src']);
     }
 
     double spacing = markdownStyle.blockSpacing;
@@ -410,5 +410,23 @@ class _Block {
       child: contents,
       decoration: decoration
     );
+  }
+
+  Widget _buildImage(BuildContext context, String src) {
+    List<String> parts = src.split('#');
+    if (parts.length == 0) return new Container();
+
+    String path = parts.first;
+    double width;
+    double height;
+    if (parts.length == 2) {
+      List<String> dimensions = parts.last.split('x');
+      if (dimensions.length == 2) {
+        width = double.parse(dimensions[0]);
+        height = double.parse(dimensions[1]);
+      }
+    }
+
+    return new NetworkImage(src: path, width: width, height: height);
   }
 }
