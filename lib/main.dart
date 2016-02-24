@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'fluttermarkdown.dart';
+import 'syntax_highlighter.dart';
 
 void main() {
+
+new SyntaxHighlighter('PublicClass ^%|/~_PrivateClass variable _privateVar').readFile();
 
   runApp(
     new MaterialApp(
