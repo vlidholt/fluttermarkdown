@@ -246,12 +246,15 @@ class _Renderer implements md.NodeVisitor {
     }
   }
 
+  static const List<String> _kBlockTags = const <String>['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'img', 'pre', 'ol', 'ul'];
+  static const List<String> _kListTags = const <String>['ul', 'ol'];
+
   bool _isBlockTag(String tag) {
-    return <String>['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'img', 'pre', 'ol', 'ul'].contains(tag);
+    return _kBlockTags.contains(tag);
   }
 
   bool _isListTag(String tag) {
-    return <String>['ul', 'ol'].contains(tag);
+    return _kListTags.contains(tag);
   }
 
   _Block get _currentBlock => _currentBlockInList(_blocks);
