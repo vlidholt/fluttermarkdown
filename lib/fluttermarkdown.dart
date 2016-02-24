@@ -17,7 +17,11 @@ class MarkdownStyle {
     this.strong,
     this.blockquote,
     this.blockSpacing,
-    this.listIndent
+    this.listIndent,
+    this.blockquotePadding,
+    this.blockquoteDecoration,
+    this.codeblockPadding,
+    this.codeblockDecoration
   }) {
     _init();
   }
@@ -36,7 +40,17 @@ class MarkdownStyle {
     strong = new TextStyle(fontWeight: FontWeight.bold),
     blockquote = theme.text.body1,
     blockSpacing = 8.0,
-    listIndent = 32.0 {
+    listIndent = 32.0,
+    blockquotePadding = 8.0,
+    blockquoteDecoration = new BoxDecoration(
+      backgroundColor: Colors.blue[100],
+      borderRadius: 2.0
+    ),
+    codeblockPadding = 8.0,
+    codeblockDecoration = new BoxDecoration(
+      backgroundColor: Colors.grey[100],
+      borderRadius: 2.0
+    ) {
     _init();
   }
 
@@ -54,7 +68,17 @@ class MarkdownStyle {
     strong = new TextStyle(fontWeight: FontWeight.bold),
     blockquote = theme.text.body1,
     blockSpacing = 8.0,
-    listIndent = 32.0 {
+    listIndent = 32.0,
+    blockquotePadding = 8.0,
+    blockquoteDecoration = new BoxDecoration(
+      backgroundColor: Colors.blue[100],
+      borderRadius: 2.0
+    ),
+    codeblockPadding = 8.0,
+    codeblockDecoration = new BoxDecoration(
+      backgroundColor: Colors.grey[100],
+      borderRadius: 2.0
+    ) {
     _init();
   }
 
@@ -72,7 +96,11 @@ class MarkdownStyle {
     TextStyle strong,
     TextStyle blockquote,
     double blockSpacing,
-    double listIndent
+    double listIndent,
+    double blockquotePadding,
+    BoxDecoration blockquoteDecoration,
+    double codeblockPadding,
+    BoxDecoration codeblockDecoration
   }) {
     return new MarkdownStyle(
       a: a != null ? a : this.a,
@@ -88,7 +116,11 @@ class MarkdownStyle {
       strong: strong != null ? strong : this.strong,
       blockquote: blockquote != null ? blockquote : this.blockquote,
       blockSpacing: blockSpacing != null ? blockSpacing : this.blockSpacing,
-      listIndent: listIndent != null ? listIndent : this.listIndent
+      listIndent: listIndent != null ? listIndent : this.listIndent,
+      blockquotePadding: blockquotePadding != null ? blockquotePadding : this.blockquotePadding,
+      blockquoteDecoration: blockquoteDecoration != null ? blockquoteDecoration : this.blockquoteDecoration,
+      codeblockPadding: codeblockPadding != null ? codeblockPadding : this.codeblockPadding,
+      codeblockDecoration: codeblockDecoration != null ? codeblockDecoration : this.codeblockDecoration
     );
   }
 
@@ -106,6 +138,10 @@ class MarkdownStyle {
   final TextStyle blockquote;
   final double blockSpacing;
   final double listIndent;
+  final double blockquotePadding;
+  final BoxDecoration blockquoteDecoration;
+  final double codeblockPadding;
+  final BoxDecoration codeblockDecoration;
 
   Map<String, TextStyle> _styles;
 
@@ -317,17 +353,11 @@ class _Block {
     EdgeDims padding;
 
     if (tag == 'blockquote') {
-      decoration = new BoxDecoration(
-        backgroundColor: Colors.blue[100],
-        borderRadius: 2.0
-      );
-      padding = new EdgeDims.all(8.0);
+      decoration = markdownStyle.blockquoteDecoration;
+      padding = new EdgeDims.all(markdownStyle.blockquotePadding);
     } else if (tag == 'pre') {
-      decoration = new BoxDecoration(
-        backgroundColor: Colors.grey[100],
-        borderRadius: 2.0
-      );
-      padding = new EdgeDims.all(8.0);
+      decoration = markdownStyle.codeblockDecoration;
+      padding = new EdgeDims.all(markdownStyle.codeblockPadding);
     }
 
     if (subBlocks.length > 0) {
