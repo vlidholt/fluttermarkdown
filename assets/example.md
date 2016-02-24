@@ -11,11 +11,17 @@ regular paragraph.
 The quick brown fox jumped over the lazy
 dog's back.
 
+1. List item one
+Second line
+2. List item two
+
+Some more text
+
     Code example!
 
 This is an [example link](http://example.com/).
 
-![My image](https://s-media-cache-ak0.pinimg.com/236x/00/3d/1b/003d1b933780b855aa568d683b91622d.jpg)
+![My image](https://s-media-cache-ak0.pinimg.com/236x/00/3d/1b/003d1b933780b855aa568d683b91622d.jpg#200x200)
 
 ### Header 3
 
@@ -26,3 +32,6 @@ This is an [example link](http://example.com/).
 > Block paragraph, _testing_ testing.
 >
 > Second paragraph
+>
+> - List item 1
+> - List item 2
