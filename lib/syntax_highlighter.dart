@@ -20,7 +20,7 @@ class SyntaxHighlighterStyle {
       commentStyle: new TextStyle(color: Colors.green[600]),
       keywordStyle: new TextStyle(color: Colors.purple[500]),
       stringStyle: new TextStyle(color: Colors.red[500]),
-      punctuationStyle: new TextStyle(color: Colors.grey[800]),
+      punctuationStyle: new TextStyle(color: Colors.black),
       classStyle: new TextStyle(color: Colors.deepPurple[700]),
       constantStyle: new TextStyle(color: Colors.brown[500])
     );
