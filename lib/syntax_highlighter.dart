@@ -17,9 +17,9 @@ class SyntaxHighlighterStyle {
     return new SyntaxHighlighterStyle(
       baseStyle: new TextStyle(color: Colors.black),
       numberStyle: new TextStyle(color: Colors.blue[800]),
-      commentStyle: new TextStyle(color: Colors.green[600]),
+      commentStyle: new TextStyle(color: Colors.grey[500]),
       keywordStyle: new TextStyle(color: Colors.purple[500]),
-      stringStyle: new TextStyle(color: Colors.red[500]),
+      stringStyle: new TextStyle(color: Colors.green[600]),
       punctuationStyle: new TextStyle(color: Colors.black),
       classStyle: new TextStyle(color: Colors.deepPurple[700]),
       constantStyle: new TextStyle(color: Colors.brown[500])
@@ -36,9 +36,12 @@ class SyntaxHighlighterStyle {
   final TextStyle constantStyle;
 }
 
-class SyntaxHighlighter {
-  SyntaxHighlighter(this.src, [this._style]) {
-    _scanner = new StringScanner(src);
+abstract class SyntaxHighlighter {
+  dynamic format(String src);
+}
+
+class DartSyntaxHighlighter {
+  DartSyntaxHighlighter([this._style]) {
     _spans = <_HighlightSpan>[];
 
     if (_style == null)
@@ -61,12 +64,15 @@ class SyntaxHighlighter {
     'int', 'double', 'num', 'bool'
   ];
 
-  final String src;
+  String _src;
   StringScanner _scanner;
 
   List<_HighlightSpan> _spans;
 
-  dynamic format() {
+  dynamic format(String src) {
+    _src = src;
+    _scanner = new StringScanner(_src);
+
     _generateSpans();
 
     List<dynamic> formattedText = <dynamic>[_style.baseStyle];
@@ -74,15 +80,15 @@ class SyntaxHighlighter {
 
     for (_HighlightSpan span in _spans) {
       if (currentPosition != span.start)
-        formattedText.add(src.substring(currentPosition, span.start));
+        formattedText.add(_src.substring(currentPosition, span.start));
 
-      formattedText.add(<dynamic>[span.textStyle(_style), span.textForSpan(src)]);
+      formattedText.add(<dynamic>[span.textStyle(_style), span.textForSpan(_src)]);
 
       currentPosition = span.end;
     }
 
-    if (currentPosition != src.length)
-      formattedText.add(src.substring(currentPosition, src.length));
+    if (currentPosition != _src.length)
+      formattedText.add(_src.substring(currentPosition, _src.length));
 
     return formattedText;
   }
@@ -114,7 +120,7 @@ class SyntaxHighlighter {
           endComment = _scanner.lastMatch.end - 1;
         } else {
           eof = true;
-          endComment = src.length;
+          endComment = _src.length;
         }
 
         _spans.add(new _HighlightSpan(
@@ -140,7 +146,7 @@ class SyntaxHighlighter {
       }
 
       // Raw r'String'
-      if (_scanner.scan(new RegExp(r"r'.*''"))) {
+      if (_scanner.scan(new RegExp(r"r'.*'"))) {
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -264,10 +270,6 @@ class SyntaxHighlighter {
     }
 
     _simplify();
-
-    for (_HighlightSpan span in _spans) {
-      print(span.textForSpan(src));
-    }
   }
 
   void _simplify() {
