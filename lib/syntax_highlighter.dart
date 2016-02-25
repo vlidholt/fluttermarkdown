@@ -40,7 +40,7 @@ abstract class SyntaxHighlighter {
   dynamic format(String src);
 }
 
-class DartSyntaxHighlighter {
+class DartSyntaxHighlighter extends SyntaxHighlighter {
   DartSyntaxHighlighter([this._style]) {
     _spans = <_HighlightSpan>[];
 
@@ -73,27 +73,31 @@ class DartSyntaxHighlighter {
     _src = src;
     _scanner = new StringScanner(_src);
 
-    _generateSpans();
+    if (_generateSpans()) {
+      // Successfully parsed the code
+      List<dynamic> formattedText = <dynamic>[_style.baseStyle];
+      int currentPosition = 0;
 
-    List<dynamic> formattedText = <dynamic>[_style.baseStyle];
-    int currentPosition = 0;
+      for (_HighlightSpan span in _spans) {
+        if (currentPosition != span.start)
+          formattedText.add(_src.substring(currentPosition, span.start));
 
-    for (_HighlightSpan span in _spans) {
-      if (currentPosition != span.start)
-        formattedText.add(_src.substring(currentPosition, span.start));
+        formattedText.add(<dynamic>[span.textStyle(_style), span.textForSpan(_src)]);
 
-      formattedText.add(<dynamic>[span.textStyle(_style), span.textForSpan(_src)]);
+        currentPosition = span.end;
+      }
 
-      currentPosition = span.end;
+      if (currentPosition != _src.length)
+        formattedText.add(_src.substring(currentPosition, _src.length));
+
+      return formattedText;
+    } else {
+      // Parsing failed, return with only basic formatting
+      return <dynamic>[_style.baseStyle, src];
     }
-
-    if (currentPosition != _src.length)
-      formattedText.add(_src.substring(currentPosition, _src.length));
-
-    return formattedText;
   }
 
-  void _generateSpans() {
+  bool _generateSpans() {
     int lastLoopPosition = _scanner.position;
 
     while(!_scanner.isDone) {
@@ -263,13 +267,14 @@ class DartSyntaxHighlighter {
 
       // Check if this loop did anything
       if (lastLoopPosition == _scanner.position) {
-        print("Failed to parse more");
-        break;
+        // Failed to parse this file, abort gracefully
+        return false;
       }
       lastLoopPosition = _scanner.position;
     }
 
     _simplify();
+    return true;
   }
 
   void _simplify() {
