@@ -384,7 +384,7 @@ class _Block {
         children: subWidgets
       );
     } else {
-      contents = new StyledText(elements: stack);
+      contents = new RichText(text: _stackToTextSpan(stack));
 
       if (listIndents.length > 0) {
         Widget bullet;
@@ -423,6 +423,26 @@ class _Block {
       child: contents,
       decoration: decoration
     );
+  }
+
+  TextSpan _stackToTextSpan(dynamic stack) {
+    if (stack is TextSpan)
+      return stack;
+
+    if (stack is List) {
+      TextStyle style = stack[0];
+      List<TextSpan> children = <TextSpan>[];
+      for (int i = 1; i < stack.length; i++) {
+        children.add(_stackToTextSpan(stack[i]));
+      }
+      return new TextSpan(style: style, children: children);
+    }
+
+    if (stack is String) {
+      return new TextSpan(text: stack);
+    }
+
+    return null;
   }
 
   Widget _buildImage(BuildContext context, String src) {

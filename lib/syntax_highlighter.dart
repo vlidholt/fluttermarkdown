@@ -37,7 +37,7 @@ class SyntaxHighlighterStyle {
 }
 
 abstract class SyntaxHighlighter {
-  dynamic format(String src);
+  TextSpan format(String src);
 }
 
 class DartSyntaxHighlighter extends SyntaxHighlighter {
@@ -69,31 +69,31 @@ class DartSyntaxHighlighter extends SyntaxHighlighter {
 
   List<_HighlightSpan> _spans;
 
-  dynamic format(String src) {
+  TextSpan format(String src) {
     _src = src;
     _scanner = new StringScanner(_src);
 
     if (_generateSpans()) {
       // Successfully parsed the code
-      List<dynamic> formattedText = <dynamic>[_style.baseStyle];
+      List<TextSpan> formattedText = <TextSpan>[];
       int currentPosition = 0;
 
       for (_HighlightSpan span in _spans) {
         if (currentPosition != span.start)
-          formattedText.add(_src.substring(currentPosition, span.start));
+          formattedText.add(new TextSpan(text: _src.substring(currentPosition, span.start)));
 
-        formattedText.add(<dynamic>[span.textStyle(_style), span.textForSpan(_src)]);
+        formattedText.add(new TextSpan(style: span.textStyle(_style), text: span.textForSpan(_src)));
 
         currentPosition = span.end;
       }
 
       if (currentPosition != _src.length)
-        formattedText.add(_src.substring(currentPosition, _src.length));
+        formattedText.add(new TextSpan(text: _src.substring(currentPosition, _src.length)));
 
-      return formattedText;
+      return new TextSpan(style: _style.baseStyle, children: formattedText);
     } else {
       // Parsing failed, return with only basic formatting
-      return <dynamic>[_style.baseStyle, src];
+      return new TextSpan(style:_style.baseStyle, text: src);
     }
   }
 

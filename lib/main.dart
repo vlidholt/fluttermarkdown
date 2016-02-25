@@ -41,7 +41,7 @@ class FlutterDemoState extends State {
 
   String data;
   String code;
-  List<dynamic> formattedText;
+  TextSpan formattedText;
   bool loaded = false;
 
   Widget build(BuildContext context) {
