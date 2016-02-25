@@ -30,7 +30,11 @@ class MarkdownStyle {
   MarkdownStyle.defaultFromTheme(ThemeData theme) :
     a = new TextStyle(color: Colors.blue[500]),
     p = theme.text.body1,
-    code = new TextStyle(color: Colors.purple[500]),
+    code = new TextStyle(
+      color: Colors.grey[700],
+      fontFamily: "monospace",
+      fontSize: theme.text.body1.fontSize * 0.85
+    ),
     h1 = theme.text.headline,
     h2 = theme.text.title,
     h3 = theme.text.subhead,
@@ -58,7 +62,11 @@ class MarkdownStyle {
   MarkdownStyle.largeFromTheme(ThemeData theme) :
     a = new TextStyle(color: Colors.blue[500]),
     p = theme.text.body1,
-    code = new TextStyle(color: Colors.purple[500]),
+    code = new TextStyle(
+      color: Colors.grey[700],
+      fontFamily: "monospace",
+      fontSize: theme.text.body1.fontSize * 0.85
+    ),
     h1 = theme.text.display3,
     h2 = theme.text.display2,
     h3 = theme.text.display1,

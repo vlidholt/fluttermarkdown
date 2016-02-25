@@ -15,7 +15,7 @@ dog's back.
 Second line
 2. List item two
 
-Some more text
+Some more text this has `Inline Code` which works, as well as code blocks:
 
     // Return an empty scaffold unless loading complete
     if (!loaded) {
