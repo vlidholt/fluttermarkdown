@@ -132,6 +132,28 @@ class SyntaxHighlighter {
         continue;
       }
 
+      // Raw r"String"
+      if (_scanner.scan(new RegExp(r'r".*"'))) {
+        print("Scanned string: ${_scanner.lastMatch[0]}");
+        _spans.add(new _HighlightSpan(
+          _HighlightType.string,
+          _scanner.lastMatch.start,
+          _scanner.lastMatch.end
+        ));
+        continue;
+      }
+
+      // Raw r'String'
+      if (_scanner.scan(new RegExp(r"r'.*''"))) {
+        print("Scanned string: ${_scanner.lastMatch[0]}");
+        _spans.add(new _HighlightSpan(
+          _HighlightType.string,
+          _scanner.lastMatch.start,
+          _scanner.lastMatch.end
+        ));
+        continue;
+      }
+
       // Multiline """String"""
       if (_scanner.scan(new RegExp(r'"""(?:[^"\\]|\\(.|\n))*"""'))) {
         print("Scanned string: ${_scanner.lastMatch[0]}");
@@ -209,8 +231,8 @@ class SyntaxHighlighter {
         continue;
       }
 
-      // Special words
-      if (_scanner.scan("@override")) {
+      // Metadata
+      if (_scanner.scan(new RegExp(r"@\w+"))) {
         _spans.add(new _HighlightSpan(
           _HighlightType.keyword,
           _scanner.lastMatch.start,

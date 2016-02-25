@@ -4,3 +4,4 @@ material-design-icons:
 assets:
   - assets/example.md
   - lib/main.dart
+  - lib/syntax_highlighter.dart

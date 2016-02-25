@@ -24,7 +24,7 @@ class FlutterDemoState extends State {
 
   Future load() async {
     data = await DefaultAssetBundle.of(context).loadString('assets/example.md');
-    code = await DefaultAssetBundle.of(context).loadString('lib/main.dart');
+    code = await DefaultAssetBundle.of(context).loadString('lib/syntax_highlighter.dart');
 
     formattedText = new SyntaxHighlighter('/* Testing a code example */\nclass Foo {\n  // Comment\n  foo = new Monkey();\n}').format();
     formattedText = new SyntaxHighlighter(code).format();
