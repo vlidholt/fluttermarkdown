@@ -16,13 +16,13 @@ class SyntaxHighlighterStyle {
   static SyntaxHighlighterStyle defaultStyle() {
     return new SyntaxHighlighterStyle(
       baseStyle: new TextStyle(color: Colors.black),
-      numberStyle: new TextStyle(color: Colors.brown[500]),
-      commentStyle: new TextStyle(color: Colors.grey[500]),
+      numberStyle: new TextStyle(color: Colors.blue[800]),
+      commentStyle: new TextStyle(color: Colors.green[600]),
       keywordStyle: new TextStyle(color: Colors.purple[500]),
-      stringStyle: new TextStyle(color: Colors.green[500]),
+      stringStyle: new TextStyle(color: Colors.red[500]),
       punctuationStyle: new TextStyle(color: Colors.grey[800]),
-      classStyle: new TextStyle(color: Colors.orange[500]),
-      constantStyle: new TextStyle(color: Colors.amber[500])
+      classStyle: new TextStyle(color: Colors.deepPurple[700]),
+      constantStyle: new TextStyle(color: Colors.brown[500])
     );
   }
 
@@ -101,19 +101,16 @@ class SyntaxHighlighter {
           _scanner.lastMatch.start,
           _scanner.lastMatch.end
         ));
-
-        print("Scanned block comment: ${_scanner.lastMatch[0]}");
+        continue;
       }
 
       // Line comments
       if (_scanner.scan("//")) {
-        print("Scanned start comment: ${_scanner.lastMatch[0]}");
         int startComment = _scanner.lastMatch.start;
 
         bool eof = false;
         int endComment;
         if (_scanner.scan(new RegExp(r".*\n"))) {
-          print("Scanned end comment: ${_scanner.lastMatch[0]}");
           endComment = _scanner.lastMatch.end - 1;
         } else {
           eof = true;
@@ -134,7 +131,6 @@ class SyntaxHighlighter {
 
       // Raw r"String"
       if (_scanner.scan(new RegExp(r'r".*"'))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -145,7 +141,6 @@ class SyntaxHighlighter {
 
       // Raw r'String'
       if (_scanner.scan(new RegExp(r"r'.*''"))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -156,7 +151,6 @@ class SyntaxHighlighter {
 
       // Multiline """String"""
       if (_scanner.scan(new RegExp(r'"""(?:[^"\\]|\\(.|\n))*"""'))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -167,7 +161,6 @@ class SyntaxHighlighter {
 
       // Multiline '''String'''
       if (_scanner.scan(new RegExp(r"'''(?:[^'\\]|\\(.|\n))*'''"))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -178,7 +171,6 @@ class SyntaxHighlighter {
 
       // "String"
       if (_scanner.scan(new RegExp(r'"(?:[^"\\]|\\.)*"'))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -189,7 +181,6 @@ class SyntaxHighlighter {
 
       // 'String'
       if (_scanner.scan(new RegExp(r"'(?:[^'\\]|\\.)*'"))) {
-        print("Scanned string: ${_scanner.lastMatch[0]}");
         _spans.add(new _HighlightSpan(
           _HighlightType.string,
           _scanner.lastMatch.start,
@@ -205,7 +196,6 @@ class SyntaxHighlighter {
           _scanner.lastMatch.start,
           _scanner.lastMatch.end
         ));
-        print("Scanned double: ${_scanner.lastMatch[0]}");
         continue;
       }
 
@@ -216,7 +206,6 @@ class SyntaxHighlighter {
           _scanner.lastMatch.start,
           _scanner.lastMatch.end)
         );
-        print("Scanned int: ${_scanner.lastMatch[0]}");
         continue;
       }
 
@@ -227,7 +216,6 @@ class SyntaxHighlighter {
           _scanner.lastMatch.start,
           _scanner.lastMatch.end
         ));
-        print("Scanned punctuation: ${_scanner.lastMatch[0]}");
         continue;
       }
 
@@ -243,7 +231,6 @@ class SyntaxHighlighter {
 
       // Words
       if (_scanner.scan(new RegExp(r"\w+"))) {
-        print("Scanned word: ${_scanner.lastMatch[0]}");
         _HighlightType type;
 
         String word = _scanner.lastMatch[0];
