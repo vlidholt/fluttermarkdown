@@ -17,7 +17,14 @@ Second line
 
 Some more text
 
-    Code example!
+    // Return an empty scaffold unless loading complete
+    if (!loaded) {
+      return new Scaffold(
+        toolBar: new ToolBar(
+          center: new Text("Markdown Demo")
+        )
+      );
+    }
 
 This is an [example link](http://example.com/).
 
