@@ -60,8 +60,7 @@ class FlutterDemoState extends State {
       body: new Material(
         child: new Block(
           padding: new EdgeDims.all(16.0),
-          // children: <Widget>[new Markdown(data: data)])
-          children: <Widget>[new StyledText(elements: formattedText)])
+          children: <Widget>[new Markdown(data: data)])
       )
     );
   }
