@@ -4,7 +4,7 @@ import 'syntax_highlighter.dart';
 
 void main() {
 
-new SyntaxHighlighter('PublicClass ^%|/~_PrivateClass variable _privateVar').readFile();
+new SyntaxHighlighter('PublicClass ^%|/~_PrivateClass variable _privateVar kConstant kowabunga _kConstant').readFile();
 
   runApp(
     new MaterialApp(

@@ -155,6 +155,8 @@ class SyntaxHighlighter {
 
         if (_firstLetterIsUpperCase(word))
           type = _HighlightType.klass;
+        else if (word.length >= 2 && word.startsWith("k") && _firstLetterIsUpperCase(word.substring(1)))
+          type = _HighlightType.constant;
 
         if (type != null) {
           _spans.add(new _HighlightSpan(
