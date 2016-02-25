@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart' as md;
 import 'package:flutter/material.dart';
+import 'syntax_highlighter.dart';
 
 class MarkdownStyle {
 
@@ -168,11 +169,13 @@ class MarkdownStyle {
 class Markdown extends StatefulComponent {
   Markdown({
     this.data,
-    this.markdownStyle
+    this.markdownStyle,
+    this.syntaxHighlighter
   });
 
   final String data;
   final MarkdownStyle markdownStyle;
+  final SyntaxHighlighter syntaxHighlighter;
 
   State<Markdown> createState() => new _MarkdownState();
 }
@@ -182,11 +185,15 @@ class _MarkdownState extends State<Markdown> {
   void initState() {
     super.initState();
 
-    MarkdownStyle style = config.markdownStyle;
-    if (style == null)
-      style = new MarkdownStyle.defaultFromTheme(Theme.of(context));
+    MarkdownStyle markdownStyle = config.markdownStyle;
+    if (markdownStyle == null)
+      markdownStyle = new MarkdownStyle.defaultFromTheme(Theme.of(context));
 
-    _cachedBlocks = _blocksFromMarkup(config.data, style);
+    SyntaxHighlighter syntaxHighlighter = config.syntaxHighlighter;
+    if (syntaxHighlighter == null)
+      syntaxHighlighter = new DartSyntaxHighlighter();
+
+    _cachedBlocks = _blocksFromMarkup(config.data, markdownStyle, syntaxHighlighter);
   }
 
   List<_Block> _cachedBlocks;
@@ -204,21 +211,22 @@ class _MarkdownState extends State<Markdown> {
   }
 }
 
-List<_Block> _blocksFromMarkup(String data, MarkdownStyle markdownStyle) {
+List<_Block> _blocksFromMarkup(String data, MarkdownStyle markdownStyle, SyntaxHighlighter syntaxHighlighter) {
   var lines = data.replaceAll('\r\n', '\n').split('\n');
   md.Document document = new md.Document();
 
   _Renderer renderer = new _Renderer();
-  return renderer.render(document.parseLines(lines), markdownStyle);
+  return renderer.render(document.parseLines(lines), markdownStyle, syntaxHighlighter);
 }
 
 class _Renderer implements md.NodeVisitor {
-  List<_Block> render(List<md.Node> nodes, MarkdownStyle markdownStyle) {
+  List<_Block> render(List<md.Node> nodes, MarkdownStyle markdownStyle, SyntaxHighlighter syntaxHighlighter) {
     assert(markdownStyle != null);
 
     _blocks = <_Block>[];
     _listIndents = <String>[];
     _markdownStyle = markdownStyle;
+    _syntaxHighlighter = syntaxHighlighter;
 
     for (final md.Node node in nodes) {
       node.accept(this);
@@ -230,10 +238,15 @@ class _Renderer implements md.NodeVisitor {
   List<_Block> _blocks;
   List<String> _listIndents;
   MarkdownStyle _markdownStyle;
+  SyntaxHighlighter _syntaxHighlighter;
 
   void visitText(md.Text text) {
     List<dynamic> top = _currentBlock.stack.last;
-    top.add(text.text);
+
+    if (_currentBlock.tag == 'pre')
+      top.add(_syntaxHighlighter.format(text.text));
+    else
+      top.add(text.text);
   }
 
   bool visitElementBefore(md.Element element) {
