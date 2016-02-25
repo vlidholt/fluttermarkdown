@@ -1,11 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'fluttermarkdown.dart';
 import 'syntax_highlighter.dart';
 
 void main() {
-
-new SyntaxHighlighter('PublicClass ^%|/~_PrivateClass variable class classic _privateVar kConstant kowabunga _kConstant').readFile();
-
   runApp(
     new MaterialApp(
       title: "Flutter Demo",
@@ -23,20 +22,31 @@ class FlutterDemo extends StatefulComponent {
 
 class FlutterDemoState extends State {
 
+  Future load() async {
+    data = await DefaultAssetBundle.of(context).loadString('assets/example.md');
+    code = await DefaultAssetBundle.of(context).loadString('lib/main.dart');
+
+    formattedText = new SyntaxHighlighter('/* Testing a code example */\nclass Foo {\n  // Comment\n  foo = new Monkey();\n}').format();
+    formattedText = new SyntaxHighlighter(code).format();
+  }
+
   void initState() {
     super.initState();
 
-    DefaultAssetBundle.of(context).loadString('assets/example.md').then((String data) {
+    load().then((_) {
       setState(() {
-        this.data = data;
+        loaded = true;
       });
     });
   }
 
   String data;
+  String code;
+  List<dynamic> formattedText;
+  bool loaded = false;
 
   Widget build(BuildContext context) {
-    if (data == null) {
+    if (!loaded) {
       return new Scaffold(
         toolBar: new ToolBar(
           center: new Text("Markdown Demo")
@@ -51,7 +61,8 @@ class FlutterDemoState extends State {
       body: new Material(
         child: new Block(
           padding: new EdgeDims.all(16.0),
-          children: <Widget>[new Markdown(data: data)])
+          // children: <Widget>[new Markdown(data: data)])
+          children: <Widget>[new StyledText(elements: formattedText)])
       )
     );
   }

@@ -3,3 +3,4 @@ material-design-icons:
   - name: content/add
 assets:
   - assets/example.md
+  - lib/main.dart
