@@ -370,16 +370,6 @@ class _Block {
     if (last) spacing = 0.0;
 
     Widget contents;
-    BoxDecoration decoration;
-    EdgeDims padding;
-
-    if (tag == 'blockquote') {
-      decoration = markdownStyle.blockquoteDecoration;
-      padding = new EdgeDims.all(markdownStyle.blockquotePadding);
-    } else if (tag == 'pre') {
-      decoration = markdownStyle.codeblockDecoration;
-      padding = new EdgeDims.all(markdownStyle.codeblockPadding);
-    }
 
     if (subBlocks.length > 0) {
       List<Widget> subWidgets = <Widget>[];
@@ -423,6 +413,17 @@ class _Block {
           ]
         );
       }
+    }
+
+    BoxDecoration decoration;
+    EdgeDims padding;
+
+    if (tag == 'blockquote') {
+      decoration = markdownStyle.blockquoteDecoration;
+      padding = new EdgeDims.all(markdownStyle.blockquotePadding);
+    } else if (tag == 'pre') {
+      decoration = markdownStyle.codeblockDecoration;
+      padding = new EdgeDims.all(markdownStyle.codeblockPadding);
     }
 
     return new Container(
